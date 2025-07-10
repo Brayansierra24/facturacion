@@ -1,23 +1,30 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClienteController;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+// 1) Ruta pública: bienvenida para invitados
+Route::middleware('guest')->group(function () {
+    Route::get('/', function () {
+        return view('welcome');
+    });
 });
-
+// Alias “dashboard” que redirige a clientes
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    return redirect()->route('clientes.index');
+})->name('dashboard')->middleware('auth');
 
+
+// 2) Ruta raíz para autenticados: redirige a /clientes
+Route::get('/', function () {
+    return redirect()->route('clientes.index');
+})->middleware('auth');
+
+// 3) Tus rutas protegidas
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::resource('clientes', ClienteController::class)->middleware(['auth']);
-
+    Route::resource('clientes', ClienteController::class);
+    // aquí van las demás rutas protegidas...
 });
 
+// 4) Rutas de Breeze (login, logout, register, etc.)
 require __DIR__.'/auth.php';
